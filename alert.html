@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URGENT: Missing Person Alert</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 10px 20px; color: #333; }
+        .container { max-width: 600px; width: 100%; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; border-top: 10px solid #d32f2f; }
+        .header { background: #d32f2f; color: white; text-align: center; padding: 10px; font-size: 20px; font-weight: bold; text-transform: uppercase; }
+        .section { padding: 10px 14px; border-bottom: 1px solid #eee; }
+        .section:last-of-type { border-bottom: none; }
+        .section-title { font-size: 15px; color: #d32f2f; font-weight: bold; margin-bottom: 6px; display: flex; align-items: center; }
+        /*
+         * Images render at their natural aspect ratio. max-width and max-height
+         * only *shrink* the box while preserving proportions (no crop, no stretch),
+         * and the total page always fits one screen: 2 x 26vh of image + compact text.
+         */
+        .profile-img, .car-img {
+            width: auto;
+            height: auto;
+            max-width: min(300px, 100%);
+            max-height: 26vh;
+            border-radius: 10px;
+            display: block;
+            margin: 0 auto 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .details { font-size: 14px; line-height: 1.4; }
+        .details p { margin: 2px 0; }
+        .highlight { font-weight: bold; color: #000; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 14px; background: #fdfdfd; }
+        .btn { text-align: center; padding: 10px; border-radius: 8px; text-decoration: none; font-weight: bold; color: white; transition: 0.3s; cursor: pointer; border: none; width: 100%; font-size: 14px; }
+        .btn-person { background: #d32f2f; }
+        .btn-car { background: #555; }
+        .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+
+        /* Extra-compact sizing for very short screens (e.g. landscape phones) */
+        @media (max-height: 620px) {
+            .header { padding: 6px; font-size: 16px; }
+            .profile-img, .car-img { max-height: 20vh; }
+            .details { font-size: 13px; }
+            .btn { padding: 8px; font-size: 13px; }
+            .section { padding: 8px 12px; }
+        }
+
+        /* ---------- Square views: ?view=driver or ?view=mini ---------- */
+        body.driver { padding: 0; }
+        body.driver .container {
+            max-width: 100vw;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            margin: 0;
+            border-radius: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        body.driver .header { padding: 1.2vmin; font-size: clamp(13px, 3.2vmin, 30px); }
+        body.driver .split-row {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            min-height: 0;
+        }
+        body.driver .section { flex: 1; padding: 1.2vmin; border-bottom: none; display: flex; flex-direction: column; min-width: 0; }
+        body.driver .section:first-child { border-right: 1px solid #eee; }
+        body.driver .section-title { font-size: clamp(11px, 2.4vmin, 22px); margin-bottom: 0.8vmin; }
+        body.driver .profile-img, body.driver .car-img {
+            flex: 1;
+            min-height: 0;
+            height: auto;
+            width: 100%;
+            max-width: none;
+            max-height: none;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 0 0 1vmin;
+            border-radius: 8px;
+        }
+        body.driver .details { font-size: clamp(12px, 3vmin, 26px); line-height: 1.35; overflow: hidden auto; }
+        body.driver .details p { margin: 0.5vmin 0; }
+        body.driver .btn-group { display: none; }
+
+        /* ---------- Mini view: smaller square with no section titles ---------- */
+        body.mini .header { padding: 0.8vmin; font-size: clamp(12px, 2.6vmin, 24px); }
+        body.mini .section-title { display: none; }
+        body.mini .section { padding: 0.8vmin; }
+        body.mini .profile-img, body.mini .car-img { margin-bottom: 0.7vmin; }
+        body.mini .details { font-size: clamp(11px, 3.4vmin, 26px); line-height: 1.3; }
+        body.mini .details p { margin: 0.4vmin 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">🚨 Urgent Alert 🚨</div>
+
+    <div class="split-row">
+        <!-- Person Section -->
+        <div class="section">
+            <div class="section-title">Person Details</div>
+            <img id="personImg" src="" alt="Missing Person" class="profile-img">
+            <div class="details">
+                <p>Name: <span id="name" class="highlight">-</span></p>
+                <p>Description: <span id="desc">-</span></p>
+                <p>Last Seen: <span id="seen" class="highlight">-</span></p>
+            </div>
+        </div>
+
+        <!-- Vehicle Section -->
+        <div class="section">
+            <div class="section-title">Associated Vehicle</div>
+            <img id="carImg" src="" alt="AI Generated Vehicle" class="car-img">
+            <div class="details">
+                <p>Vehicle: <span id="carModel" class="highlight">-</span></p>
+                <p>Color: <span id="carColor" class="highlight">-</span></p>
+                <p>Plate: <span id="carPlate" class="highlight">-</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="btn-group">
+        <button onclick="report('Person')" class="btn btn-person">Report Person</button>
+        <button onclick="report('Vehicle')" class="btn btn-car">Report Vehicle</button>
+    </div>
+</div>
+
+<script>
+    // Square layouts: alert.html?id=102&view=driver  |  alert.html?id=102&view=mini
+    const urlParams = new URLSearchParams(window.location.search);
+    const squareView = urlParams.get('view');
+    if (squareView === 'driver' || squareView === 'mini') {
+        document.body.classList.add('driver');
+        if (squareView === 'mini') {
+            document.body.classList.add('mini');
+        }
+    }
+
+    function report(type) {
+        const subject = `URGENT: Tip for ${type}`;
+        window.location.href = `mailto:${window.contactEmail}?subject=${encodeURIComponent(subject)}`;
+    }
+
+    async function loadAlert() {
+        // 1. Get the alert ID from URL (e.g., alert.html?id=102)
+        const alertId = urlParams.get('id');
+
+        if (!alertId) {
+            document.body.innerHTML = "<h1>Error: No Alert ID provided in URL</h1>";
+            return;
+        }
+
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/stahuja/pcalert/refs/heads/main/alert.json');
+        let data = await response.json();
+
+        let alert;
+
+        // Check if 'data' is an array. If it is, use .find().
+        // If it's already a single object, just use it directly!
+        if (Array.isArray(data)) {
+            alert = data.find(item => item.alert_id === alertId);
+        } else {
+            // It's a single object, so we check if the ID matches
+            if (data.alert_id === alertId) {
+                alert = data;
+            }
+        }
+
+        if (alert) {
+            document.getElementById('name').innerText = alert.person_name;
+            document.getElementById('desc').innerText = alert.description;
+            document.getElementById('seen').innerText = alert.last_seen;
+            document.getElementById('personImg').src = alert.photo_url;
+
+            document.getElementById('carModel').innerText = alert.car_model;
+            document.getElementById('carColor').innerText = alert.car_color;
+            document.getElementById('carPlate').innerText = alert.car_plate;
+
+            const aiPrompt = `A professional high-resolution automotive studio photo of a ${alert.car_color} ${alert.car_model}, side view, realistic lighting, 8k resolution, white background`;
+            const imgSize = squareView ? 'width=600&height=600' : 'width=600&height=400';
+            document.getElementById('carImg').src = `https://image.pollinations.ai/prompt/${encodeURIComponent(aiPrompt)}?${imgSize}&nologo=true`;
+
+            window.contactEmail = alert.contact_email;
+        } else {
+            document.body.innerHTML = "<h1 style='text-align:center;'>Alert not found</h1>";
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+        document.body.innerHTML = "<h1 style='text-align:center;'>System Error loading alert</h1>";
+    }
+  }
+    loadAlert();
+</script>
+
+</body>
+</html>
